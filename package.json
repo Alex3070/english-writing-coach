@@ -1,0 +1,16 @@
+{
+  "name": "english-writing-coach",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "英语写作批改老师：输入英文 + 用中文说明你想表达的意思，由大模型纠正语法/用词错误并给出讲解",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node --watch server.mjs",
+    "test": "node scripts/render-test.mjs",
+    "probe": "node scripts/probe.mjs"
+  },
+  "engines": {
+    "node": ">=20.11"
+  }
+}

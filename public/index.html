@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>英语写作批改老师</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✎</text></svg>" />
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">✎</div>
+    <div class="brand-text">
+      <h1>英语写作批改老师</h1>
+      <p>把你想说的话用中文写清楚，老师就来改你的英文</p>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <label class="field field-inline">
+      <span class="label">模型</span>
+      <select id="model-select" aria-label="选择模型"></select>
+    </label>
+    <span id="key-status" class="pill pill-muted">检查中…</span>
+  </div>
+</header>
+
+<main>
+  <section class="card compose">
+    <div class="compose-grid">
+      <div class="editor">
+        <div class="editor-head">
+          <h2><span class="step">1</span>我写的英文</h2>
+          <span class="muted" id="english-count">0 词</span>
+        </div>
+        <textarea id="english-input" spellcheck="false"
+          placeholder="Type or paste the English you wrote, e.g.&#10;Yesterday I go to a new cafe with my friend. The coffee is very good."></textarea>
+      </div>
+      <div class="editor">
+        <div class="editor-head">
+          <h2><span class="step">2</span>我想表达的意思（中文）</h2>
+          <span class="muted">写得越具体，老师判断越准</span>
+        </div>
+        <textarea id="chinese-input"
+          placeholder="用中文说清你本来想表达什么，例如：&#10;昨天我和朋友去了一家新开的咖啡馆，咖啡很好喝，但价格有点贵。我想下周再去一次，尝尝他们的蛋糕。"></textarea>
+      </div>
+    </div>
+
+    <div class="options">
+      <div class="field">
+        <span class="label">批改严格程度</span>
+        <div class="segmented" id="strictness-group" role="group" aria-label="批改严格程度">
+          <button type="button" data-value="gentle">宽松</button>
+          <button type="button" data-value="standard" class="active">标准</button>
+          <button type="button" data-value="strict">严格</button>
+        </div>
+      </div>
+      <label class="field">
+        <span class="label">写作场景</span>
+        <select id="register-select">
+          <option value="daily">日常 / 生活写作</option>
+          <option value="academic">学术写作（论文、报告）</option>
+          <option value="business">商务 / 职场写作</option>
+          <option value="exam">考试作文（四六级、雅思、托福）</option>
+          <option value="email">英文邮件</option>
+        </select>
+      </label>
+      <label class="field field-check">
+        <input type="checkbox" id="want-native" checked />
+        <span>附带母语者润色版</span>
+      </label>
+    </div>
+
+    <div class="options options-focus">
+      <span class="label">重点关注（可多选）</span>
+      <div class="chips" id="focus-chips"></div>
+    </div>
+
+    <div class="actions">
+      <button type="button" id="submit-btn" class="btn btn-primary">
+        开始批改 <kbd>Ctrl</kbd><span class="kbd-plus">+</span><kbd>Enter</kbd>
+      </button>
+      <button type="button" id="stop-btn" class="btn btn-danger hidden">停止</button>
+      <button type="button" id="example-btn" class="btn btn-ghost">填入示例</button>
+      <button type="button" id="clear-btn" class="btn btn-ghost">清空</button>
+      <span class="spacer"></span>
+      <span id="elapsed" class="muted"></span>
+    </div>
+  </section>
+
+  <div id="error-banner" class="banner banner-error hidden"></div>
+  <div id="notice-banner" class="banner banner-warn hidden"></div>
+
+  <section id="results" class="results hidden">
+    <div id="progress" class="card progress">
+      <div class="progress-head">
+        <span class="spinner" aria-hidden="true"></span>
+        <span id="progress-text">老师正在读你的作文…</span>
+        <span class="spacer"></span>
+        <span id="progress-time" class="muted"></span>
+      </div>
+      <div class="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
+    </div>
+
+    <div id="sec-intent" class="card section hidden"></div>
+
+    <div id="sec-issues" class="section hidden">
+      <h2 class="section-title">问题清单 <span id="issues-count" class="badge">0</span></h2>
+      <div id="issues-list" class="issue-list"></div>
+    </div>
+
+    <div id="sec-corrected" class="card section hidden"></div>
+    <div id="sec-native" class="card section hidden"></div>
+
+    <div id="sec-upgrades" class="section hidden">
+      <h2 class="section-title">用词升级 <span class="muted">正确，但可以更地道</span></h2>
+      <div id="upgrades-list" class="upgrade-list"></div>
+    </div>
+
+    <div id="sec-score" class="card section hidden"></div>
+
+    <div id="sec-takeaways" class="section hidden">
+      <h2 class="section-title">今天记住这几点</h2>
+      <div id="takeaways-list" class="takeaway-list"></div>
+    </div>
+
+    <div id="sec-followup" class="card section hidden">
+      <h2 class="section-title">有问题继续问老师</h2>
+      <p class="muted followup-hint">比如：「为什么这里要用过去完成时？」「请再给我三个类似例句。」</p>
+      <div id="followup-thread" class="followup-thread"></div>
+      <div class="followup-form">
+        <textarea id="followup-input" rows="2" placeholder="用中文写下你的疑问…"></textarea>
+        <button type="button" id="followup-btn" class="btn btn-primary">提问</button>
+      </div>
+    </div>
+
+    <div class="actions actions-bottom">
+      <button type="button" id="export-btn" class="btn btn-ghost">导出批改报告（Markdown）</button>
+      <button type="button" id="rerun-btn" class="btn btn-ghost">重新批改</button>
+    </div>
+  </section>
+
+  <details id="history-panel" class="card history">
+    <summary>历史记录 <span id="history-count" class="badge">0</span><span class="muted history-hint">保存在本机浏览器里</span></summary>
+    <div id="history-list" class="history-list"></div>
+  </details>
+</main>
+
+<footer class="footer muted">
+  本地运行 · 调用 DeepSeek 大模型批改 · 数据只在你自己的电脑和模型接口之间流转
+</footer>
+
+<script type="module" src="/app.js"></script>
+</body>
+</html>
